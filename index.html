@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ZYVRA | Professional Sales Dashboard</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Excel -->
+  <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+
+  <!-- Google Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- Mobile Menu Button -->
+  <button class="mobile-menu-btn" onclick="toggleSidebar()">
+    <i class="fas fa-bars"></i>
+  </button>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div>
+      <div class="brand">
+        <div class="brand-logo"></div>
+        <h1>ZYVRA</h1>
+        <p>Professional Sales Dashboard</p>
+      </div>
+
+      <nav class="menu">
+        <button class="active" onclick="scrollToSection('dashboardTop')">
+          <i class="fas fa-chart-pie"></i>
+          <span>Dashboard</span>
+        </button>
+
+        <button onclick="scrollToSection('salesForm')">
+          <i class="fas fa-cart-plus"></i>
+          <span>เพิ่มยอดขาย</span>
+        </button>
+
+        <button onclick="scrollToSection('historySection')">
+          <i class="fas fa-clock-rotate-left"></i>
+          <span>ประวัติวันนี้</span>
+        </button>
+
+        <button onclick="exportToExcel()">
+          <i class="fas fa-file-excel"></i>
+          <span>Export Excel</span>
+        </button>
+
+        <button class="danger-btn" onclick="clearTodaySales()">
+          <i class="fas fa-trash-can"></i>
+          <span>ล้างประวัติวันนี้</span>
+        </button>
+      </nav>
+    </div>
+
+    <div class="sidebar-footer">
+      <p>© 2026 ZYVRA STORE</p>
+      <small>Premium Analytics System</small>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main-content" id="dashboardTop">
+
+    <!-- Top Header -->
+    <header class="top-header">
+      <div>
+        <h2>ยอดขายร้านวันนี้</h2>
+        <p id="todayDate"></p>
+      </div>
+
+      <div class="header-right">
+        <div class="status-badge">
+          <span class="dot"></span>
+          LIVE DATA
+        </div>
+      </div>
+    </header>
+
+    <!-- KPI -->
+    <section class="kpi-grid">
+      <div class="kpi-card revenue">
+        <div class="kpi-top">
+          <span>ยอดขายรวม</span>
+          <i class="fas fa-baht-sign"></i>
+        </div>
+        <h3 id="totalSales">0</h3>
+        <small>บาท</small>
+      </div>
+
+      <div class="kpi-card orders">
+        <div class="kpi-top">
+          <span>จำนวนออเดอร์</span>
+          <i class="fas fa-receipt"></i>
+        </div>
+        <h3 id="totalOrders">0</h3>
+        <small>รายการ</small>
+      </div>
+
+      <div class="kpi-card shirts">
+        <div class="kpi-top">
+          <span>เสื้อขายได้</span>
+          <i class="fas fa-shirt"></i>
+        </div>
+        <h3 id="shirtCount">0</h3>
+        <small>ตัว</small>
+      </div>
+
+      <div class="kpi-card pants">
+        <div class="kpi-top">
+          <span>กางเกงขายได้</span>
+          <i class="fas fa-user-tie"></i>
+        </div>
+        <h3 id="pantsCount">0</h3>
+        <small>ตัว</small>
+      </div>
+    </section>
+
+    <!-- Charts -->
+    <section class="charts-grid">
+      <div class="chart-card large">
+        <div class="card-header">
+          <h3>📈 วิเคราะห์ยอดขายตามประเภทสินค้า</h3>
+          <p>เปรียบเทียบรายได้แต่ละประเภท</p>
+        </div>
+        <canvas id="salesChart"></canvas>
+      </div>
+
+      <div class="chart-card">
+        <div class="card-header">
+          <h3>🥧 สัดส่วนสินค้า</h3>
+          <p>เสื้อ vs กางเกง</p>
+        </div>
+        <canvas id="productChart"></canvas>
+      </div>
+    </section>
+
+    <!-- Extra Analytics -->
+    <section class="charts-grid second-row">
+      <div class="chart-card">
+        <div class="card-header">
+          <h3>📊 จำนวนออเดอร์แต่ละประเภท</h3>
+        </div>
+        <canvas id="ordersChart"></canvas>
+      </div>
+
+      <div class="chart-card">
+        <div class="card-header">
+          <h3>🏆 สินค้าขายดี</h3>
+        </div>
+        <div class="best-seller-box">
+          <h2 id="bestSeller">-</h2>
+          <p>สินค้าทำยอดสูงสุดวันนี้</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Form -->
+    <section class="sales-form" id="salesForm">
+      <div class="card-header">
+        <h3>🛒 เพิ่มรายการขายใหม่</h3>
+        <p>บันทึกข้อมูลยอดขายแบบเรียลไทม์</p>
+      </div>
+
+      <div class="form-grid">
+        <div class="input-group">
+          <label>รายการสินค้า</label>
+          <select id="saleType">
+            <option value="shirt">เสื้อเดี่ยว (200 บาท)</option>
+            <option value="pants">กางเกงเดี่ยว (300 บาท)</option>
+            <option value="shirtPromo">เสื้อโปร 2 ตัว (350 บาท)</option>
+            <option value="pantsPromo">กางเกงโปร 2 ตัว (550 บาท)</option>
+            <option value="set">เสื้อ + กางเกง (450 บาท)</option>
+          </select>
+        </div>
+
+        <div class="input-group">
+          <label>จำนวน</label>
+          <input type="number" id="quantity" min="1" value="1"/>
+        </div>
+      </div>
+
+      <button class="add-sale-btn" onclick="addSale()">
+        <i class="fas fa-plus-circle"></i>
+        เพิ่มยอดขาย
+      </button>
+    </section>
+
+    <!-- History -->
+    <section class="history-section" id="historySection">
+      <div class="card-header history-header">
+        <div>
+          <h3>📋 ประวัติการขายวันนี้</h3>
+          <p>แก้ไข / ลบ / ตรวจสอบย้อนหลัง</p>
+        </div>
+
+        <div class="history-actions">
+          <button onclick="exportToExcel()">
+            <i class="fas fa-download"></i> Export
+          </button>
+
+          <button class="danger-btn" onclick="clearTodaySales()">
+            <i class="fas fa-trash"></i> ล้างทั้งหมด
+          </button>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>เวลา</th>
+              <th>รายการ</th>
+              <th>จำนวน</th>
+              <th>ยอดขาย</th>
+              <th>จัดการ</th>
+            </tr>
+          </thead>
+
+          <tbody id="salesTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>

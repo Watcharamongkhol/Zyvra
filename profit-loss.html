@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ZYVRA | Profit & Loss Dashboard</title>
+
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body class="profit-page">
+
+  <!-- Mobile Menu -->
+  <button class="mobile-menu-btn" onclick="toggleSidebar()">
+    <i class="fas fa-bars"></i>
+  </button>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div>
+      <div class="brand">
+        <div class="brand-logo">Z</div>
+        <h1>ZYVRA</h1>
+        <p>Profit & Loss Analytics</p>
+      </div>
+
+      <div class="nav-links">
+        <a href="index.html" class="nav-btn">
+          <i class="fas fa-chart-pie"></i>
+          <span>Dashboard</span>
+        </a>
+
+        <a href="profit-loss.html" class="nav-btn active">
+          <i class="fas fa-coins"></i>
+          <span>กำไร / ขาดทุน</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <p>© 2026 ZYVRA STORE</p>
+      <small>Financial Intelligence System</small>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main-content">
+
+    <!-- Header -->
+    <header class="top-header premium-header">
+      <div>
+        <h2>💰 กำไร / ขาดทุน วันนี้</h2>
+        <p id="todayDate"></p>
+      </div>
+
+      <div class="header-right">
+        <div class="status-badge profit-live">
+          <span class="dot"></span>
+          MYSQL LIVE
+        </div>
+      </div>
+    </header>
+
+    <!-- KPI -->
+    <section class="kpi-grid">
+      <div class="kpi-card revenue glow-orange">
+        <div class="kpi-top">
+          <span>ยอดขายรวม</span>
+          <i class="fas fa-baht-sign"></i>
+        </div>
+        <h3 id="totalRevenue">0</h3>
+        <small>บาท</small>
+      </div>
+
+      <div class="kpi-card cost glow-blue">
+        <div class="kpi-top">
+          <span>ต้นทุนรวม</span>
+          <i class="fas fa-box-open"></i>
+        </div>
+        <h3 id="totalCost">0</h3>
+        <small>บาท</small>
+      </div>
+
+      <div class="kpi-card profit glow-green">
+        <div class="kpi-top">
+          <span>กำไรสุทธิ</span>
+          <i class="fas fa-coins"></i>
+        </div>
+        <h3 id="netProfit">0</h3>
+        <small>บาท</small>
+      </div>
+
+      <div class="kpi-card roi glow-purple">
+        <div class="kpi-top">
+          <span>ROI</span>
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <h3 id="roiPercent">0%</h3>
+        <small>ผลตอบแทน</small>
+      </div>
+    </section>
+
+    <!-- Charts -->
+    <section class="charts-grid">
+      <div class="chart-card large glass-card">
+        <div class="card-header">
+          <h3>📈 Revenue vs Cost vs Profit</h3>
+          <p>เปรียบเทียบภาพรวมการเงิน</p>
+        </div>
+        <canvas id="financeChart"></canvas>
+      </div>
+
+      <div class="chart-card glass-card">
+        <div class="card-header">
+          <h3>🥧 Profit Ratio</h3>
+          <p>กำไรเทียบต้นทุน</p>
+        </div>
+        <canvas id="profitPieChart"></canvas>
+      </div>
+    </section>
+
+    <!-- Insights -->
+    <section class="charts-grid second-row">
+      <div class="chart-card glass-card">
+        <div class="card-header">
+          <h3>🏆 สินค้ากำไรสูงสุด</h3>
+        </div>
+        <div class="best-seller-box premium-box">
+          <h2 id="topProfitProduct">-</h2>
+          <p>สินค้าทำกำไรสูงสุดวันนี้</p>
+        </div>
+      </div>
+
+      <div class="chart-card glass-card">
+        <div class="card-header">
+          <h3>📊 Financial Status</h3>
+        </div>
+        <div class="profit-status-box">
+          <h2 id="financialStatus">-</h2>
+          <p>สถานะธุรกิจวันนี้</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Table -->
+    <section class="history-section glass-card">
+      <div class="card-header history-header">
+        <div>
+          <h3>📋 รายงานกำไร / ขาดทุน</h3>
+          <p>วิเคราะห์แบบละเอียด</p>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Invoice</th>
+              <th>สินค้า</th>
+              <th>ยอดขาย</th>
+              <th>ต้นทุน</th>
+              <th>กำไร</th>
+            </tr>
+          </thead>
+          <tbody id="profitTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    let financeChart, profitPieChart;
+
+    document.getElementById("todayDate").textContent =
+      new Date().toLocaleDateString("th-TH", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric"
+      });
+
+    async function loadProfitData() {
+      try {
+        const response = await fetch("profit_data.php");
+        const data = await response.json();
+
+        if (!data.success) {
+          alert(data.message);
+          return;
+        }
+
+        document.getElementById("totalRevenue").textContent = data.totalRevenue.toLocaleString();
+        document.getElementById("totalCost").textContent = data.totalCost.toLocaleString();
+        document.getElementById("netProfit").textContent = data.netProfit.toLocaleString();
+        document.getElementById("roiPercent").textContent = data.roi + "%";
+
+        document.getElementById("topProfitProduct").textContent = data.topProduct || "-";
+
+        document.getElementById("financialStatus").textContent =
+          data.netProfit > 0 ? "📈 กำไร" :
+          data.netProfit < 0 ? "📉 ขาดทุน" : "⚖️ เท่าทุน";
+
+        renderTable(data.sales);
+        renderCharts(data);
+
+      } catch (error) {
+        alert("โหลดข้อมูลไม่สำเร็จ");
+      }
+    }
+
+    function renderTable(sales) {
+      const table = document.getElementById("profitTable");
+      table.innerHTML = "";
+
+      sales.forEach((sale, index) => {
+        table.innerHTML += `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${sale.invoice_no}</td>
+            <td>${sale.product_name}</td>
+            <td>${Number(sale.total_price).toLocaleString()}</td>
+            <td>${Number(sale.cost_total).toLocaleString()}</td>
+            <td>${Number(sale.profit).toLocaleString()}</td>
+          </tr>
+        `;
+      });
+    }
+
+    function renderCharts(data) {
+      if (financeChart) financeChart.destroy();
+      if (profitPieChart) profitPieChart.destroy();
+
+      financeChart = new Chart(document.getElementById("financeChart"), {
+        type: "bar",
+        data: {
+          labels: ["ยอดขาย", "ต้นทุน", "กำไร"],
+          datasets: [{
+            label: "บาท",
+            data: [data.totalRevenue, data.totalCost, data.netProfit],
+            backgroundColor: ["#f97316", "#38bdf8", "#22c55e"],
+            borderRadius: 12
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { labels: { color: "white" } }
+          },
+          scales: {
+            x: { ticks: { color: "white" } },
+            y: { ticks: { color: "white" } }
+          }
+        }
+      });
+
+      profitPieChart = new Chart(document.getElementById("profitPieChart"), {
+        type: "doughnut",
+        data: {
+          labels: ["ต้นทุน", "กำไร"],
+          datasets: [{
+            data: [data.totalCost, Math.max(data.netProfit, 0)],
+            backgroundColor: ["#38bdf8", "#22c55e"]
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { labels: { color: "white" } }
+          }
+        }
+      });
+    }
+
+    function toggleSidebar() {
+      document.getElementById("sidebar").classList.toggle("show");
+    }
+
+    loadProfitData();
+  </script>
+
+</body>
+</html>
